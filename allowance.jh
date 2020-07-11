@@ -1,0 +1,131 @@
+entity Person {
+	firstName String,
+    lastName String,
+    birthDate LocalDate,
+    gender String,
+    address String,
+    mobile String required,
+    email String ,
+    password String required pattern(/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z]).{4,16}$/),
+    parentPIN String,
+    nickName String,
+    allowanceDay String,  // pay to child  like friday
+    doneTaskOnlyByParent Boolean,
+    username String required min(8) max(24),
+    type PersonType required,
+    weeklyAllowance BigDecimal,   // required if PersonType is CHILD
+    avatar String
+}
+
+entity Account {
+	cardNumber String required,
+    number String required,
+    iban String,
+    openDate LocalDate required,
+    status AccountStatus required,
+    balance BigDecimal,   
+    saving BigDecimal
+}
+
+entity CardLimit {
+	spendOnStores Boolean required,
+    spendOnATMs Boolean required,
+    spendOnline Boolean required,
+    weeklySpend BigDecimal,  
+    singleSpend BigDecimal,  
+    atm BigDecimal
+}
+
+entity Transfer {
+	source String required,
+    destination String required,
+    type TransferType required
+}
+
+entity Transaction {  
+	description String, // in card page we see transaction for every children that some of them has transaction with walk dog that is not merchant name
+	merchant String,
+    date LocalDate required,
+    balance BigDecimal required,
+    amount BigDecimal   
+}
+
+entity Task {  
+	title String required, 
+	type TaskType required,
+  	startDate LocalDate, // if is not weekly
+    price BigDecimal required,   
+    state TaskState required
+}
+
+entity Goal {  
+	title String required, 
+  	startDate LocalDate required, 
+    requiredAmount BigDecimal required,
+    savedAmount BigDecimal,
+    weeklySaving BigDecimal required,
+    state GoalState required
+}
+
+entity Merchant {  
+	title String required, 
+	category MerchantType required
+}
+
+//---- Enums
+enum TaskType {
+    WEEKLY, ONE_OFF
+}
+
+enum TransferType {
+    INTERNAL, LEGACY
+}
+
+enum MerchantType
+{
+	TEMP
+}
+
+enum TaskState {
+    TODO, DONE
+}
+
+enum GoalState {
+    SAVING, DONE
+}
+
+enum PersonType {
+    PARENT, CHILD
+}
+
+enum AcountStatus {
+    BLOCKED, ACTIVE
+}
+
+//----- Relashionships
+relationship OneToOne {
+	Person to Account{person required}
+    Account to CardLimit{account required}
+}
+
+relationship OneToMany {
+	Person to Transaction{person required}
+    Person to Goal{person required}
+    Account to Goal{account required}
+    Person to Task{person required} 
+}
+
+
+// Set pagination options
+paginate Task, Goal with infinite-scroll
+paginate Transaction with pagination
+
+// Use Data Transfert Objects (DTO)
+dto * with mapstruct
+
+// Set service options to all except few
+service all with serviceImpl 
+
+skipClient all
+// Set an angular suffix
+// angularSuffix * with mySuffix
